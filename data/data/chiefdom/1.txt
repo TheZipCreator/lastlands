@@ -1,0 +1,4 @@
+29
+24
+/image/flag/example.png
+Test Chiefdom
