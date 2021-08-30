@@ -1,3 +1,10 @@
-# Window that appears after clicking "select chiefdom"
-title "{metadata.0}"
+# Window that appears after clicking on a chiefdom in the Chiefdom Select screen
+# {metadata.0} is the Chiefdom name
+# {metadata.1} is the path to the flag of the chiefdom.
+# {metadata.2} is the tag of the chiefdom
+title "Select Chiefdom"
 size 500 500
+position center
+text "{metadata.0}" 0 80 40 255 255 255
+image "{metadata.1}" 100 80
+button 50 450 400 30 "Play as {metadata.0}" "/data/script/select_chiefdom.lel" "{metadata.2}"

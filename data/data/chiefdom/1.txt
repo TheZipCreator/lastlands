@@ -1,4 +1,6 @@
 29
 24
-/image/flag/example.png
-Test Chiefdom
+/image/flag/nomari_raiders.png
+Nomari Raiders
+Nomari_Raiders
+956

@@ -1,0 +1,4 @@
+# Script that gets triggered whenever the "Declare War" button is pressed
+# {metadata.0} is chiefdom A
+# {metadata.1} is cheifdom B
+open_window "/data/window/confirm_war.lgl" {metadata.0} {metadata.1}

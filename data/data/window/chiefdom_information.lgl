@@ -1,0 +1,23 @@
+# Window that appear after clicking a chiefdom that's not your own on the play screen
+# {metadata.0} is the Chiefdom name
+# {metadata.1} is the path to the flag of the chiefdom.
+# {metadata.2} is the population of the chiefdom
+# {metadata.3} is the tag of the chiefdom
+# {metadata.4} is the tag of the player's current chiefdom
+title "{metadata.0}"
+size 1000 500
+position center
+text "Flag:" 0 80 40 255 255 255
+image "{metadata.1}" 100 80 "Flag of {metadata.0}" 
+text "Population: {metadata.2}" 0 320 40 255 255 255
+line 500 0 500 800 0 0 0
+text "Diplomacy" 500 40 40 255 255 255
+image "/image/misc/alliance.png" 505 50 "Alliances"
+image "/image/misc/war.png" 505 100 "Wars"
+image "/image/misc/has_tributary.png" 505 150 "Has Tributaries:"
+image "/image/misc/tributary_of.png" 505 200 "Tributary Of:"
+diplomaticbox 555 55 0 "{metadata.3}" 0
+diplomaticbox 555 105 1 "{metadata.3}" 0
+diplomaticbox 555 155 2 "{metadata.3}" 1
+diplomaticbox 555 205 2 "{metadata.3}" 2
+button 50 340 400 40 "Declare War" "/data/script/declare_war.lel" "{metadata.3}" "{metadata.4}"

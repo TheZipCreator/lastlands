@@ -1,0 +1,4 @@
+# Script called when the player clicks the button on the Select Chiefdom window
+change_state 1
+reset_windows
+play {metadata.0}

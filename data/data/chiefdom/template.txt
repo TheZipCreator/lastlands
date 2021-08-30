@@ -2,5 +2,7 @@ X Position
 Y Position
 Flag (Directory to the flag, starting from data. Start directory with "/". PNG format is reccommended, but supports any format which Processing can read. Flag must be 300x200) 
 Name
+Tag
+Population
 
 When creating a chiefdom, also remember to increase the amount of chiefdoms in amount.txt

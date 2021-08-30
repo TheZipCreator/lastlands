@@ -1,0 +1,7 @@
+# Window that appears when you launch the game
+title "Main Menu"
+size 900 500
+position center
+disable_x
+image "/image/misc/logo.png" 0 20
+button 412 250 75 30 "Play" "/data/script/play.lel" ""

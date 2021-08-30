@@ -1,0 +1,5 @@
+# Window that appear when you press Escape
+size 300 500
+position center
+title "Menu"
+button 10 400 283 30 "Exit to Main Menu" /data/script/exit_to_main_menu.lel

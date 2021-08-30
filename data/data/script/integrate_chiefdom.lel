@@ -1,0 +1,3 @@
+# {metadata.0} is the integrating chiefdom
+# {metadata.1} is the chiefdom to be integrated
+integrate {metadata.0} {metadata.1}

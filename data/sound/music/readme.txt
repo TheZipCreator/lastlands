@@ -1,0 +1,1 @@
+So if you want to add tracks, add the directory to the track to the end of tracks.txt, and the length in seconds plus 1 after that.

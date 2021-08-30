@@ -1,0 +1,15 @@
+# Window that appears after winning a battle
+# {metadata.0} is the tag of the opponent chiefdom
+# {metadata.1} is the name of the opponent chiefdom
+# {metadata.2} is the tag of the player chiefdom
+size 450 500
+title "A Battle Won"
+disable_x
+force_pause
+position center
+text "We have won the battle" 0 80 32 255 255 255
+text "against {metadata.1}!" 0 112 32 255 255 255
+text "Choose your action:" 0 144 32 255 255 255
+button 32 176 368 40 "Exterminate" "/data/script/exterminate_chiefdom.lel" {metadata.0}
+button 32 226 368 40 "Integrate" "/data/script/integrate_chiefdom.lel" {metadata.2} {metadata.0}
+button 32 276 368 40 "Establish Tributary" "/data/script/tributary_chiefdom.lel" {metadata.2} {metadata.0}

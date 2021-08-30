@@ -1,6 +1,4 @@
 class Text extends WindowElement {
-  int x; //Position relative to the window
-  int y;
   String text; //Text to be displayed
   int textSize; //Size of the text
   color textColor; //Text color
@@ -10,10 +8,10 @@ class Text extends WindowElement {
     this.textSize = textSize;
     this.textColor = textColor;
   }
-  void render() {
+  void render(int windowX, int windowY) {
     fill(red(textColor), blue(textColor), green(textColor));
     textSize(textSize);
-    text(text, x, y);
+    text(text, windowX+x, windowY+y);
   }
   
 }
