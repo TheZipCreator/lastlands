@@ -1,0 +1,1 @@
+In order to add new map text, add the text you want to add, followed in the next line by two numbers representing the tile position of the text.

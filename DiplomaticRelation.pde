@@ -17,4 +17,19 @@ class DiplomaticRelation { //Diplomatic relation between two chiefdoms
   boolean containsMembers(String chiefdomA_, String chiefdomB_) { //Test if this DiplomaticRelation contains 2 chiefdoms
     return (chiefdomA_.equals(chiefdomA) && chiefdomB_.equals(chiefdomB)) || (chiefdomB_.equals(chiefdomA) && chiefdomA_.equals(chiefdomB));
   }
+  boolean containsMember(String chiefdom) { //Tests if chiefdom is a participant in this diplomatic relation
+    return chiefdomA.equals(chiefdom) || chiefdomB.equals(chiefdom);
+  }
+  
+  String getOther(String tag) { //Gets the other tag given a tag. Returns chiefdomA if the tag given is not in this diplomatic relation
+    if(chiefdomA.equals(tag)) {
+      return chiefdomB;
+    } else {
+      return chiefdomA;
+    }
+  }
+  
+  String toString() {
+    return type+" "+chiefdomA+" "+chiefdomB;
+  }
 }

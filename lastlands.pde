@@ -43,6 +43,16 @@ int currentTrack = 0; //Which track is currently being played
 boolean enableMusic = false;
 ArrayList<DiplomaticRelation> diplomacy; //All diplomatic relations between chiefdoms
 ArrayList<Battle> battles; //Ongoing battles
+MapText[] mapText;
+
+//CONSTANTS
+float constCoinGrowth = 0.01; //How much population is multiplied to get coin growth
+float constPopGrowth = 0.001; //How much population is multiplied to get population growth
+float constPopPaidToTributary = 0.1; //Amount of pop growth paid to tributary
+float constCoinsPaidToTributary = 0.5; //How much coins are paid to tributary
+float constCohesionGrowthBigTributary = -1; //How much cohesion grows if you have a tributary with more population than you
+float constCohesionGrowthTributary = 0.2; //How much cohesion grows if you have a tributary with a smaller population than you
+float constCohesionGrowthNoTributaries = 0.5; //How much cohesion grows if you don't have any tributaries
 
 //Processing Functions
 
@@ -68,13 +78,14 @@ void restart() {
   day = 0; //Current day
   paused = true;
   currentTrack = 0; //Which track is currently being played
-  enableMusic = false;
   setup();
 }
 void setup() {
   background(0);
   textSize(64);
   text("Loading", width/2, height/2);
+  PImage icon = loadImage("data/image/misc/icon.png");
+  surface.setIcon(icon);
   minim = new Minim(this);
   world = new int[wsx][wsy]; //Init world
   loadLevel(parentDirectory+"/image/level/level.png");
@@ -87,12 +98,14 @@ void setup() {
   notificationImages = new PImage[2];
   notificationImages[0] = loadImage(parentDirectory+"/image/notification/default.png");
   notificationImages[1] = loadImage(parentDirectory+"/image/notification/migration_required.png");
-  miscImages = new PImage[5];
+  miscImages = new PImage[7];
   miscImages[0] = loadImage(parentDirectory+"/image/misc/selection.png"); //Selection Box
   miscImages[1] = loadImage(parentDirectory+"/image/misc/population.png"); //Population icon in the GUI
   miscImages[2] = loadImage(parentDirectory+"/image/misc/paused.png"); //Paused icon
   miscImages[3] = loadImage(parentDirectory+"/image/misc/play.png"); //Play icon
   miscImages[4] = loadImage(parentDirectory+"/image/misc/battle.png"); //Battle icon
+  miscImages[5] = loadImage(parentDirectory+"/image/misc/coins.png"); //Coins icon in the GUI
+  miscImages[6] = loadImage(parentDirectory+"/image/misc/cohesion.png"); //Cohesion icon in the GUI
   fonts = new PFont[1];
   fonts[0] = loadFont(parentDirectory+"/font/Consolas.vlw"); //Load font
   sfx = new AudioPlayer[2];
@@ -136,6 +149,13 @@ void setup() {
   String[] metadata = {};
   loadWindow(parentDirectory+"/data/window/main_menu.lgl", metadata); //Open main menu
   battles = new ArrayList<Battle>(); //Initialize battles
+  String[] maptext_file = loadStrings("data/data/map_text/text.txt");
+  mapText = new MapText[maptext_file.length/2];
+  for(int i = 0; i < maptext_file.length; i+= 2) {
+    String[] split = maptext_file[i+1].split(" ");
+    mapText[i/2] = new MapText(int(split[0]), int(split[1]), maptext_file[i]);
+    //println(int(split[0]), int(split[1]), maptext_file[i]);
+  }
 }
 void draw() {
   if(getTimeInSeconds() >= lastTrackTime+musicLength[currentTrack]) { //Play the next track if the current one ends
@@ -153,6 +173,9 @@ void draw() {
       panning.y += panningChange.y*2;
     }
     renderWorld();
+    for(int i = 0; i < mapText.length; i++) {
+      mapText[i].render();
+    }
     renderEntities();
     int tileX = floor((mouseX+panning.x)/tileSize); //X position of the tile the player is hovering on
     int tileY = floor((mouseY+panning.y)/tileSize); //Y position of the tile the player is hovering on
@@ -192,15 +215,62 @@ void draw() {
     //println(currChiefdom);
     text(((Chiefdom)entities.get(findChiefdom(currChiefdom))).name, 10, 245); //Dispay current chiefdom's name and flag
     image(((Chiefdom)entities.get(findChiefdom(currChiefdom))).flag, 10, 10);
+    Chiefdom thisChiefdom = ((Chiefdom)entities.get(findChiefdom(currChiefdom)));
     image(miscImages[1], 330, 10); //Display population
     textSize(36);
-    text(((Chiefdom)entities.get(findChiefdom(currChiefdom))).population, 404, 56);
+    text(thisChiefdom.population, 404, 56);
+    image(miscImages[5], 530, 10); //Display coins
+    text(round(thisChiefdom.coins), 604, 56);
+    image(miscImages[6], 730, 10); //Display cohesion
+    text(nf(thisChiefdom.cohesion, 0, 1)+"%", 804, 56);
+    fill(255);
     textSize(32); //Display date
     text(months[month]+" "+(day+1)+", "+year, 320, 132);
     if(paused) image(miscImages[2], 686, 102); //Display paused/play icon
     else image(miscImages[3], 686, 102);
     if(!paused && frameCount%5 == 0) dayPassed(); //Progress to next day if not paused
     displayPath(((Chiefdom)entities.get(findChiefdom(currChiefdom))).path); //Display the path of the player's chiefdom
+    if(mouseX > 304 && mouseX < 504 && mouseY < 100) { //Render population amount box
+      ArrayList<String> amountBox = new ArrayList<String>();
+      amountBox.add("Population: "+thisChiefdom.population);
+      amountBox.add(" ");
+      amountBox.add("Breakdown:");
+      amountBox.add(" ");
+      float total = 0;
+      //Positives
+      amountBox.add("+"+nf(float(thisChiefdom.population)*constPopGrowth, 0, 3)+" from Population");
+      total += float(thisChiefdom.population)*constPopGrowth;
+      float amountFromTributaries = 0;
+      for(int i = 0; i < diplomacy.size(); i++) {
+        if(diplomacy.get(i).type == 2 && diplomacy.get(i).chiefdomA.equals(thisChiefdom.tag)) {
+          amountFromTributaries += ((Chiefdom)entities.get(findChiefdom(diplomacy.get(i).chiefdomB))).population*constPopGrowth;
+        }
+      }
+      amountFromTributaries *= constPopPaidToTributary;
+      if(amountFromTributaries > 0) {
+        amountBox.add("+"+nf(amountFromTributaries, 0, 3)+" from Tributaries");
+        total += amountFromTributaries;
+      }
+      //Negatives
+      amountFromTributaries = 0;
+      for(int i = 0; i < diplomacy.size(); i++) {
+        if(diplomacy.get(i).type == 2 && diplomacy.get(i).chiefdomB.equals(thisChiefdom.tag)) {
+          amountFromTributaries += float(thisChiefdom.population)*constPopGrowth;
+        }
+      }
+      total -= amountFromTributaries;
+      amountFromTributaries *= constPopPaidToTributary;
+      println(amountFromTributaries);
+      if(amountFromTributaries > 0) {
+        amountBox.add("-"+nf(amountFromTributaries, 0, 3)+" given to overlord");
+      }
+      if(thisChiefdom.daysSinceLastMoved >= 62) {
+        amountBox.add("-"+nf(thisChiefdom.population/10, 0, 3)+" from No Resources");
+        total -= thisChiefdom.population/10;
+      }
+      amountBox.add(1, "+"+nf(floor(total), 0, 3)+" per month.");
+      renderAmountbox(amountBox);
+    }
   }
   if(state == 2) { //Move chiefdom screen
     fill(128, 128, 128, 64);
@@ -236,7 +306,7 @@ void mousePressed() {
         if(entities.get(i).collide(mouseX, mouseY) && entities.get(i) instanceof Chiefdom) {
           String[] metadata = {((Chiefdom)entities.get(i)).name, ((Chiefdom)entities.get(i)).pathToFlag, ((Chiefdom)entities.get(i)).tag};
           loadWindow(parentDirectory+"/data/window/select_chiefdom.lgl", metadata);
-          sfx[0].play(); //Play click sound
+          sfx[0].cue(0);sfx[0].play(); //Play click sound
         }
       }
     }
@@ -245,15 +315,17 @@ void mousePressed() {
     if(mouseButton == LEFT) {
       if(entities.get(findChiefdom(currChiefdom)).collide(mouseX, mouseY)) { //Detect if the player clicked on their own chiefdom and if they did put them into the "move chiefdom" state
         state = 2;
-        sfx[0].play(); //Play click sound
+        sfx[0].cue(0);sfx[0].play(); //Play click sound
         return; //Stop execution of the mouseClick function
       }
+    }
+    if(mouseButton == RIGHT) {
       for(int i = 0; i < entities.size(); i++) { //Detect if the player clicked on a chiefdom and if so open the "chiefdom information" window
         if(entities.get(i).collide(mouseX, mouseY) && entities.get(i) instanceof Chiefdom) {
           if(((Chiefdom)entities.get(i)).tag != currChiefdom) {
             String[] metadata = {((Chiefdom)entities.get(i)).name, ((Chiefdom)entities.get(i)).pathToFlag, str(((Chiefdom)entities.get(i)).population), ((Chiefdom)entities.get(i)).tag, ((Chiefdom)entities.get(findChiefdom(currChiefdom))).tag};
             loadWindow(parentDirectory+"/data/window/chiefdom_information.lgl", metadata);
-            sfx[0].play(); //Play click sound
+            sfx[0].cue(0);sfx[0].play(); //Play click sound
           }
         }
       }
@@ -269,7 +341,7 @@ void mousePressed() {
       path = a_star(astar_nodes, new intvect(chiefdom.x, chiefdom.y), new intvect(tileX, tileY));
     }
     if(path != null) { //If there is a valid path
-      sfx[0].play(); //Play click sound
+      sfx[0].cue(0);sfx[0].play(); //Play click sound
       //Fix the path
       if(path.size() > 0) {
         path = reversePath(path);
@@ -318,7 +390,7 @@ void keyPressed() {
         if(windows.get(i).force_pause) return; 
       }
       paused = !paused;
-      sfx[0].play(); //Play click sound effect
+      sfx[0].cue(0);sfx[0].play(); //Play click sound effect
     }
     if(debug) {
       if(key == '.') {
@@ -452,7 +524,7 @@ void loadWindow(String path, String[] metadata) { //Displays a window given the 
       for(int k = 0; k < temp2.length; k++) {
         temp3[k] = (String)temp2[k];
       }
-      window.addElement(new Button(int(tokens[1]), int(tokens[2]), int(tokens[3]), int(tokens[4]), tokens[5], parentDirectory+tokens[6], temp3)); //Finally add the button
+      window.addElement(new Button(int(tokens[1]), int(tokens[2]), int(tokens[3]), int(tokens[4]), tokens[5], parentDirectory+tokens[6], temp3, "", false)); //Finally add the button
     }
     if(tokens[0].equals("disable_x")) { //Disable X command
       window.disableX = true;
@@ -469,6 +541,22 @@ void loadWindow(String path, String[] metadata) { //Displays a window given the 
     if(tokens[0].equals("force_pause")) { //force pause command
       paused = true;
       window.force_pause = true;
+    }
+    if(tokens[0].equals("iftruejump")) { //if true jump command
+      if(evaluateCondition(tokens[1])) { //If the condition is true
+        i = int(tokens[2])-1; //-1 to account for how the first line is line #1 and not line #0
+      }
+    }
+    if(tokens[0].equals("iffalsejump")) { //if false jump command
+      if(!evaluateCondition(tokens[1])) { //If the condition is false
+        i = int(tokens[2])-1; //-1 to account for how the first line is line #1 and not line #0
+      }
+    }
+    if(tokens[0].equals("gray_button")) { //Gray button command
+      window.addElement(new Button(int(tokens[1]), int(tokens[2]), int(tokens[3]), int(tokens[4]), tokens[5], null, null, tokens[6], true));
+    }
+    if(tokens[0].equals("jump")) {
+      i = int(tokens[2])-1; //-1 to account for how the first line is line #1 and not line #0
     }
   }
   windows.add(window);
@@ -510,7 +598,7 @@ void loadScript(String path, String[] metadata) { //Loads a script given the pat
       restart();
     }
     if(tokens[0].equals("diplomacy")) { //Diplomacy command
-      diplomacy.add(new DiplomaticRelation(int(tokens[1]), tokens[2], tokens[3]));
+      addDiplomacy(new DiplomaticRelation(int(tokens[1]), tokens[2], tokens[3]));
     }
     if(tokens[0].equals("print")) { //print command
       println(tokens[1]);
@@ -519,11 +607,14 @@ void loadScript(String path, String[] metadata) { //Loads a script given the pat
       entities.remove(findChiefdom(tokens[1]));
     }
     if(tokens[0].equals("make_tributary")) { //make tributary command
-      diplomacy.add(new DiplomaticRelation(2, tokens[1], tokens[2]));
+      addDiplomacy(new DiplomaticRelation(2, tokens[1], tokens[2]));
     }
     if(tokens[0].equals("integrate")) { //integrate command
       entities.get(findChiefdom(tokens[1])).specificAction(0, ((Chiefdom)entities.get(findChiefdom(tokens[2]))).population); //Add population of chiefdomB to chiefdomA
       entities.remove(findChiefdom(tokens[2])); //Remove chiefdomB
+    }
+    if(tokens[0].equals("exit")) {
+      exit();
     }
   }
 }
@@ -608,17 +699,20 @@ void dayPassed() { //Call once a day has passed
         winner_tag = battles.get(i).defenderParticipants.get(0);
         loser_tag = battles.get(i).attackerParticipants.get(0);
       }
-      entities.get(findChiefdom(winner_tag)).specificAction(1, 0);
+      entities.get(findChiefdom(winner_tag)).specificAction(1, 0); //Make the countries no longer in battle
       entities.get(findChiefdom(loser_tag)).specificAction(1, 0);
-      println("a");
-      println(winner_tag, currChiefdom);
+      entities.get(findChiefdom(loser_tag)).specificAction(2, 0); //Tell the loser country to path to a random tile
+      //println("a");
+      //println(winner_tag, currChiefdom);
       if(winner_tag.equals(currChiefdom)) { //If the winner is a player
-        println("b");
+        //println("b");
         String md[] = {loser_tag, ((Chiefdom)entities.get(findChiefdom(loser_tag))).name, currChiefdom};
         loadWindow("data/window/battle_won.lgl", md); //Display the "battle won" window
+      } else {
+        ((Chiefdom)entities.get(findChiefdom(winner_tag))).wonBattle(loser_tag);
       }
       for(int j = diplomacy.size()-1; j >= 0; j--) {
-        if(diplomacy.get(j).containsMembers(winner_tag, loser_tag)) {
+        if(diplomacy.get(j).containsMembers(winner_tag, loser_tag) && diplomacy.get(j).type == 1) {
           diplomacy.remove(j);
         }
       }
@@ -634,7 +728,7 @@ ArrayList<intvect> reversePath(ArrayList<intvect> path) {
   return reversedPath;
 }
 void addNotification(int type) { //Add a notification only given a type (types are listed in the notification object)
-  sfx[1].play(); //Notification sound effect
+  sfx[1].cue(0);sfx[1].play(); //Notification sound effect
   Notification n = new Notification(byte(0), notificationImages[0], "Example Notification", 0); //Notification to add
   switch(type) {
     case 1:
@@ -673,4 +767,73 @@ int getTimeInSeconds() {
 int cap(int value, int cap) {
   if(value > cap) value = cap;
   return value;
+}
+boolean evaluateCondition(String condition) {
+  String[] tokens = createTokens(condition); //Split the condition by spaces
+  if(tokens.length > 1) {
+    if(tokens[1].equals("equals")) {
+      if(tokens[0].equals(tokens[2])) return true; //If the left-hand and right-hand side of the "equals" are the same, return true
+    }
+    if(tokens[1].equals("hasdiplo")) {
+      if(tokens[3].equals("with")) {
+        String chiefdomA = tokens[0];
+        String chiefdomB = tokens[4];
+        int diplo = int(tokens[2]);
+        for(int i = 0; i < diplomacy.size(); i++) { //Look through diplomacy
+          DiplomaticRelation relation = diplomacy.get(i);
+          if(relation.type == diplo) { //If the diplomatic relation is of the correct type
+            if(relation.containsMembers(chiefdomA, chiefdomB)) return true; //If the chiefdoms have the diplomatic relations, return true
+          }
+        }
+      }
+    }
+    if(tokens[1].equals("hasdiplo_oneway")) {
+      if(tokens[3].equals("with")) {
+        String chiefdomA = tokens[0];
+        String chiefdomB = tokens[4];
+        int diplo = int(tokens[2]);
+        for(int i = 0; i < diplomacy.size(); i++) { //Look through diplomacy
+          DiplomaticRelation relation = diplomacy.get(i);
+          if(relation.type == diplo) { //If the diplomatic relation is of the correct type
+            if(relation.chiefdomA.equals(chiefdomA) && relation.chiefdomB.equals(chiefdomB)) return true; //If the chiefdoms have the diplomatic relations, return true
+          }
+        }
+      }
+    }
+  }
+  return false;
+}
+void addDiplomacy(DiplomaticRelation relation) {
+  diplomacy.add(relation);
+  if(relation.type == 2) { //If the relation is a tributary relation
+    if(relation.chiefdomB.equals(currChiefdom)) { //If the player was just made a tributary
+      String[] metadata = {((Chiefdom)entities.get(findChiefdom(relation.chiefdomA))).name};
+      loadWindow("/data/data/window/we_are_now_a_tributary_of.lgl", metadata);      
+    }
+    float relativeStrength = float(((Chiefdom)entities.get(findChiefdom(relation.chiefdomB))).population)/float(((Chiefdom)entities.get(findChiefdom(relation.chiefdomA))).population);
+    relativeStrength = -(relativeStrength*100);
+    println(relativeStrength);
+    entities.get(findChiefdom(relation.chiefdomA)).specificAction(4, relativeStrength); //Remove cohesion
+  }
+}
+void renderAmountbox(ArrayList<String> list) {
+  fill(0, 0, 0, 128);
+  stroke(255);
+  rect(mouseX, mouseY, 400, (list.size()*16)+16);
+  textSize(16);
+  for(int i = 0; i < list.size(); i++) {
+    switch(list.get(i).charAt(0)) {
+      case '+':
+      fill(0, 255, 0);
+      break;
+      case '-':
+      fill(255, 0, 0);
+      break;
+      default:
+      fill(255);
+      break;
+    }
+    text(list.get(i), mouseX, mouseY+8+(i*16)+16);
+  }
+  stroke(0);
 }

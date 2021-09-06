@@ -1,0 +1,38 @@
+Nomaris
+33 25
+Altasia
+36 33
+Ekeland
+44 28
+Tuklin
+40 47
+Dzungar Lake
+70 40
+Entisia
+59 31
+Dzungar Coast
+70 47
+Oliny
+48 36
+Baykonia
+53 43
+Nalens
+49 56
+West Alka
+75 18
+East Alka
+87 17
+North Alka
+81 11
+Midolia
+69 25
+Telos Range
+83 35
+Mikonia Range
+93 40
+Telomiko Valley
+93 36
+Buntse
+51 67
+Darkan Range
+114 38

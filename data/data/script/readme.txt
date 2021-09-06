@@ -13,3 +13,4 @@ print [text] - prints the text into the console, for debug purposes
 exterminate [chiefdom] - Removes [chiefdom] from the game
 make_tributary [chiefdomA] [chiefdomB] - [chiefdomB] becomes a tributary of [chiefdomA]
 integrate [chiefdomA] [chiefdomB] - [chiefdomB] becomes integrated into [chiefdomA]
+exit - Closes the game

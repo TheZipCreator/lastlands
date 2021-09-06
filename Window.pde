@@ -54,7 +54,7 @@ class Window {
   void click() {
     if(mouseX >= (x+sizeX)-20 && mouseX < x+sizeX && mouseY > y && mouseY < y+50 && !disableX) { //X was clicked
       delete = true;
-      sfx[0].play(); //Play click sound
+      sfx[0].cue(0); //Play click sound
     }
     for(int i = 0; i < elements.size(); i++) {
       elements.get(i).collide(mouseX, mouseY, x, y);

@@ -18,6 +18,7 @@ class Image extends WindowElement {
    }
    void hover(int colX, int colY, int windowX, int windowY) {
      if(colX > x+windowX && colX < x+windowX+image.width && colY > y+windowY && colY < y+windowY+image.height) {
+       fill(255);
        textSize(16);
        text(hover, mouseX, mouseY);
        //println(hover);

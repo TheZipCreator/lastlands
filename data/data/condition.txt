@@ -1,0 +1,6 @@
+Put a quote around conditions in commands that use them.
+The allowed conditions are:
+
+"[string1] equals [string2]" - this evaluates whether [string1] and [string2] are equal.
+"[chiefdomA] hasdiplo [diplo] with [chiefdomB]" - evaluates if [chiefdomA] has the diplomatic relation [diplo] with [chiefdomB]. NOTE: This works both ways. If you wish to check only one way, see hasdiplo_oneway
+"[chiefdomA] hasdiplo_oneway [diplo] with chiefdomB] - evaluates if [chiefdomA] has the diplomatic relation [diplo] with [chiefdomB]. THIS ONLY WORKS ONE-WAY. [chiefdomA] MUST be chiefdomA if the diplomatic relation, and visa versa for chiefdomB. If you wish for it not to be one-way, see hasdiplo

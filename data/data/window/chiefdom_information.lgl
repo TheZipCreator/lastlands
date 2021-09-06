@@ -20,4 +20,6 @@ diplomaticbox 555 55 0 "{metadata.3}" 0
 diplomaticbox 555 105 1 "{metadata.3}" 0
 diplomaticbox 555 155 2 "{metadata.3}" 1
 diplomaticbox 555 205 2 "{metadata.3}" 2
+iftruejump "{metadata.3} equals {metadata.4}" 26
 button 50 340 400 40 "Declare War" "/data/script/declare_war.lel" "{metadata.3}" "{metadata.4}"
+# this comment is here to prevent this window from crashing the game

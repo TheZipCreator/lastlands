@@ -16,3 +16,7 @@ line [x1] [y1] [x2] [y2] [red] [green] [blue] - Draws a line from (x1,y1) to (x2
 diplomaticbox [x] [y] [type] [tag] [oneWay] - Creates a box showing all of [tag]'s diplomacy of type [type]. If [OneWay] is set to 0, it shows relations if [tag] is chiefdomA or chiefdomB, if [oneWay] is set to 1, it shows relations only if [tag] is chiefdomA, if [oneWay] is set to 2, it shows relations only if [tag] is chiefdomB.
 print [text] - prints the text into the console, for debug purposes
 force_pause - Forces the game to pause. It can only be unpaused when the window no longer exists
+iftruejump [condition] [line] - Jumps to line [line] if [condition] is true (see: conditions.txt)
+iffalsejump [condition] [line] - Jumps to line [line] if [condition] is false (see: conditions.txt)
+gray_button [x] [y] [size x] [size y] [text] [hover] - Creates a button that's grayed out. When hovered over, [hover] is displayed in red.
+jump [line] - Jumps to [line] unconditionally
